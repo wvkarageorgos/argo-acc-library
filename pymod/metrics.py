@@ -51,5 +51,11 @@ class InstallationMetrics(Metrics):
     def _fetchArgs(self):
         return [self._parent.id]
 
+    def _addRoute(self):
+        return "installation_metrics_add"
+
+    def _addArgs(self):
+        return [self._parent.id]
+
     def _createChild(self, data):
         return InstallationMetric(self, data)

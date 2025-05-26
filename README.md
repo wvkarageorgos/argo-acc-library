@@ -8,7 +8,7 @@ You may find more information pertaining to the service on the [ARGO Accounting 
 
 ## Library installation
 
-The library been tested with Python versions 3.11 and 3.12 on Rocky 8. In order to install the library, you'll need to check out the source, have python setuptools installed and run
+The library been tested with Python versions 3.9, 3.11, and 3.12 on Rocky 9. In order to install the library, you'll need to check out the source, have python setuptools installed and run
 
 ```bash
 python3 ./setup.py build && \
@@ -45,6 +45,7 @@ In the `examples` folder, you may find the following library usage examples:
 
 * getting a JSON list of registered installations (`examples/get_installations.py`)
 * getting a type / value list of metrics for a specific installation (`examples/get_installation_metrics.py`)
+* assigning a new metric entry to an installation
 
 Help on running each example is available by running the example with `-h`.
 
@@ -67,6 +68,16 @@ python3 ./examples/get_installation_metrics.py --host api.devel.acc.argo.grnet.g
 ```
 
 where `...` should be replaced by a valid installation ID from the output of the previous example, in order to get a type / value list for all metrics of the specific installation.
+
+### Assigning installation metrics
+
+Assuming you've saved your valid JWT in a file under `~/acc.jwt`, you may run the third example against the development instance of the service with
+
+```bash
+python3 ./examples/add_installation_metric.py --host api.devel.acc.argo.grnet.gr --token ~/acc.jwt -f --installation ... --metricdefid METRICDEFID --tstart TSTART --tend TEND --value VALUE --gid GID --uid UID
+```
+
+where `...` should be replaced by a valid installation ID from the output of the first example and the rest of the parameters should be supplied with the new metric properties, as described in the example's help message (via `--help`)
 
 ## Environment variables
 

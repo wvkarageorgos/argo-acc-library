@@ -16,6 +16,10 @@ class HttpRequests(object):
         self.token = token.rstrip()
 
         self.routes = {
+            "installation_metrics_add": [
+                "post",
+                "https://{0}/accounting-system/installations/{1}/metrics",
+            ],
             "installation_metrics_list": [
                 "get",
                 "https://{0}/accounting-system/installations/{1}/metrics",
@@ -68,7 +72,7 @@ class HttpRequests(object):
             status_code = r.status_code
 
             logger.debug("STATUS CODE:" + str(status_code))
-            if status_code == 200:
+            if status_code == 200 or status_code == 201:
                 decoded = self._error_dict(content, status_code)
 
             # handle authn/z related errors for all calls

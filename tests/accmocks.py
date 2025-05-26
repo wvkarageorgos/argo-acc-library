@@ -1,5 +1,5 @@
 from httmock import urlmatch, response
-
+import json
 
 class InstallationMocks(object):
     LIST_INSTALLATIONS_RESPONSE1 = """{"size_of_page":10,"number_of_page":1,"total_elements":12,"total_pages":2,"content":[
@@ -135,4 +135,28 @@ class InstallationMetricMocks(object):
             None,
             5,
             request,
+        )
+
+    post_installation_test_metric_urlmatch = dict(
+        netloc="localhost",
+        path="/accounting-system/installations/68179546f1a5b48f0c854353/metrics",
+        method="POST",
+    )
+
+    @urlmatch(**post_installation_test_metric_urlmatch)
+    def post_installation_test_metric_mock(self, url, request):
+        assert (
+            url.path
+            == "/accounting-system/installations/68179546f1a5b48f0c854353/metrics"
+        )
+        assert request.method == "POST"
+        body = json.loads(request.body)
+        assert "metric_definition_id" in body
+        assert "time_period_start" in body
+        assert "time_period_end" in body
+        assert "value" in body
+        assert "group_id" in body
+        assert "user_id" in body
+        return response(
+            201, body, None, None, 5, request
         )
