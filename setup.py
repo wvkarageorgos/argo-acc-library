@@ -40,7 +40,7 @@ setup(
         "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: POSIX",
-        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Intended Audience :: Developers",

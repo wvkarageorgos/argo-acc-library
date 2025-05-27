@@ -3,6 +3,7 @@ import json
 import abc
 from time import sleep
 import logging
+from typing import Union
 
 logger = logging.getLogger(__name__)
 
@@ -124,6 +125,19 @@ class RestResourceList(OrderedDict, RestResource):
         return self
 
     @abc.abstractmethod
+    def _addRoute(self) -> str:
+        """Abstract method to be implemented by subclasses, to denote the REST API route for POST requests
+
+        Should return the key from the parent service object route dict, that corresponds to the REST route
+        """
+        return ""
+
+    @abc.abstractmethod
+    def _addArgs(self) -> list:
+        """Abstract method to be implemented by subcasses, to provide values for params on the POST REST route"""
+        return []
+
+    @abc.abstractmethod
     def _fetchRoute(self) -> str:
         """Abstract method to be implemented by subcasses, to denote the REST API route for GET requests
 
@@ -216,3 +230,29 @@ class RestResourceList(OrderedDict, RestResource):
             tmp = self.__getitem__(id)
         finally:
             return tmp or default
+
+    def add(self, item: Union[RestResourceItem, dict, str]):
+        """
+        Creates a new subresource under the resource list
+
+        This will issue an API request using the endpoint specified by the _addRoute property, posting a JSON representation of the given item.
+        If the request succeedes, the appropriate RestResourceItem subclassed object will be returned, populated with the response's data
+        """
+        if self._addRoute != "":
+            if isinstance(item, RestResourceItem):
+                body = str(item)
+            elif isinstance(item, dict):
+                body = json.dumps(item)
+            else:
+                body = item
+            res = self.connection.make_request(
+                self.connection.routes[self._addRoute()][1].format(
+                    self.endpoint, *self._addArgs()
+                ),
+                self._addRoute(),
+                body=body,
+            )
+            ret = self._createChild(res)
+            return ret
+        else:
+            raise Exception("Operation not supported or not implemented")

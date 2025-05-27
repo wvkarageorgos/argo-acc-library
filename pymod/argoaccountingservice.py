@@ -1,12 +1,12 @@
 from .httprequests import HttpRequests
 from .installations import Installations, Installation
 from .metrics import Metric, InstallationMetrics
-
+from typing import Optional
 
 class ArgoAccountingService(object):
     """Module main class, to access the REST API"""
 
-    _installations: Installations | None = None
+    _installations: Optional[Installations] = None
 
     def __init__(self, endpoint, token):
         self._endpoint = endpoint
