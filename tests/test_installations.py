@@ -1,7 +1,10 @@
 import unittest
-from .accmocks import InstallationMocks, ProjectMocks, ProviderMocks
+
 from httmock import HTTMock
-from pymod import ArgoAccountingService, Installations
+
+from pymod import ArgoAccountingService
+
+from .accmocks import InstallationMocks, ProjectMocks, ProviderMocks
 
 
 class TestInstallations(unittest.TestCase):
@@ -101,7 +104,8 @@ class TestInstallations(unittest.TestCase):
     def testGetTestProjectProviderInstallationByIndex(self):
         """Test JSON representation of an installation"""
         with (
-                HTTMock(self.InstallationMocks.get_test_project_provider_installations_mock)
+                HTTMock(self.ProjectMocks.get_project_test_mock),
+                HTTMock(self.InstallationMocks.get_test_project_provider_installations_mock),
         ):
             p = self.acc.projects["TESTPROJ01"].providers["TESTPROV01"]
             i = p.installations[0]
@@ -116,6 +120,7 @@ class TestInstallations(unittest.TestCase):
     def testGetTestProjectProvidersInstallationJson(self):
         """Test JSON representation of an installation"""
         with (
+                HTTMock(self.ProjectMocks.get_project_test_mock),
                 HTTMock(self.InstallationMocks.get_test_project_provider_installations_mock)
         ):
             p = self.acc.projects["TESTPROJ01"].providers["TESTPROV01"]

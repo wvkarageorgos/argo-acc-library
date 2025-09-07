@@ -1,8 +1,7 @@
-from collections import OrderedDict
-import json
 import abc
-from time import sleep
+import json
 import logging
+from collections import OrderedDict
 from typing import Union
 
 logger = logging.getLogger(__name__)
@@ -15,7 +14,7 @@ class RestResource(abc.ABC):
         """Initialize a REST response
 
         Args:
-            parent(oject): an ArgoAccountingService object or another RestResource instance
+            parent(oject): an ArgoMonitoringService object or another RestResource instance
         """
         self._parent = parent
 
@@ -28,15 +27,24 @@ class RestResource(abc.ABC):
         return self._parent.connection
 
     @property
-    def idName(self):
-        """Return the JSON field name that identifies the resource. Defaults to "id", subclasses may need to override it"""
+    def id_name(self):
+        """
+        Return the JSON field name that identifies the resource.
+        Defaults to "id", subclasses may need to override it
+        """
         return "id"
+
+    @property
+    def data_root(self):
+        """
+        Return the JSON field name that contains the resource data.
+        Defaults to None, which treats the whole of the JSON resource as data
+        """
+        return None
 
 
 class RestResourceItem(RestResource):
     """Base class for REST API responses representing a single item"""
-
-    id = None
 
     def __init__(self, parent, data: dict):
         """
@@ -46,9 +54,13 @@ class RestResourceItem(RestResource):
         """
         logger.debug("Initing RestResourceItem object " + str(type(self)))
         self._parent = parent
+        self.id = None
         if len(data) == 1 and data.get("__fetch__") is not None:
             self.id = data["__fetch__"]
-            data = self._fetch()
+            if self.data_root is None:
+                data = self._fetch()
+            else:
+                data = self._fetch()[self.data_root][0]
         for k in data:
             # logger.debug("setting " + k + " to " + (str(data[k]) or "<None>"))
             setattr(self, k, data[k])
@@ -62,6 +74,20 @@ class RestResourceItem(RestResource):
             if not isinstance(self.__dict__[x], RestResource)
             and x not in {"_parent", "parent"}
         }
+        while True:
+            changed = False
+            for k, v in d1.items():
+                if k.startswith("__"):
+                    del d1[k]
+                    changed = True
+                    break
+                if k.startswith("_"):
+                    d1[k[1:]] = v
+                    del d1[k]
+                    changed = True
+                    break
+            if not changed:
+                break
         # Loop over properties that are RestResource instances (excluding "_parent")
         # and append their properties to the dictionary
         for x in self.__dict__:
@@ -70,10 +96,10 @@ class RestResourceItem(RestResource):
                 del d2["_parent"]
                 d1 = {**d1, x: d2}
         # Return a JSON representation of the built dictionary
-        return json.dumps(d1)
+        return json.dumps(d1, default=str)
 
     @abc.abstractmethod
-    def _fetchRoute(self) -> str:
+    def _fetch_route(self) -> str:
         """Abstract method to be implemented by subclasses, to denote the REST API route for GET requests
 
         Should return the key from the parent service object route dict, that corresponds to the REST route
@@ -81,18 +107,18 @@ class RestResourceItem(RestResource):
         return ""
 
     @abc.abstractmethod
-    def _fetchArgs(self) -> list:
+    def _fetch_args(self) -> list:
         """Abstract method to be implemented by subcasses, to provide values for params on the GET REST route"""
         return []
 
     def _fetch(self):
-        """Fetch an entry from the REST API, using the fetch route denoted by self::_fetchRoute"""
+        """Fetch an entry from the REST API, using the fetch route denoted by self::_fetch_route"""
         logger.debug("FETCHING ITEM")
         res = self.connection.make_request(
-            self.connection.routes[self._fetchRoute()][1].format(
-                self.endpoint, *self._fetchArgs()
+            self.connection.routes[self._fetch_route()][1].format(
+                self.endpoint, *self._fetch_args()
             ),
-            self._fetchRoute(),
+            self._fetch_route()
         )
         return res
 
@@ -101,45 +127,41 @@ class RestResourceList(OrderedDict, RestResource):
     """
     Base class for REST API responses representing a paged list of items.
 
-    Inherits OrderedDict to keep an internal dict of RestResourceItems when iterrating, and a separate cache dict to avoid
-    re-fetching individual items.
+    Inherits OrderedDict to keep an internal dict of RestResourceItems when iterrating,
+    and a separate cache dict to avoid re-fetching individual items.
     """
 
-    _pageSize = 10
-    _pageCount = 1
-    _currentPage = 0
-    _cache = OrderedDict()
-
-    def __init__(self, parent, pageSize=10):
+    def __init__(self, parent, page_size=10):
         logger.debug("Initing RestResourceList object " + str(type(self)))
         super(OrderedDict, self).__init__()
         super(RestResource, self).__init__()
         self._parent = parent
-        self._pageSize = pageSize
+        self._page_size = page_size
+        self._page_count = 1
+        self._current_page = 0
+        self._cache = OrderedDict()
 
     def refresh(self):
         """Clear the internal dict, the cache dict, and reset paging"""
         self.clear()
         self._cache.clear()
-        self._currentPage = 0
-        self._pageCount = 1
+        self._current_page = 0
+        self._page_count = 1
         return self
 
-    @abc.abstractmethod
-    def _addRoute(self) -> str:
+    def _add_route(self) -> str:
         """Abstract method to be implemented by subclasses, to denote the REST API route for POST requests
 
         Should return the key from the parent service object route dict, that corresponds to the REST route
         """
-        return ""
+        raise Exception("Operation not supported or not implemented")
 
-    @abc.abstractmethod
-    def _addArgs(self) -> list:
+    def _add_args(self) -> list:
         """Abstract method to be implemented by subcasses, to provide values for params on the POST REST route"""
-        return []
+        raise Exception("Operation not supported or not implemented")
 
     @abc.abstractmethod
-    def _fetchRoute(self) -> str:
+    def _fetch_route(self) -> str:
         """Abstract method to be implemented by subcasses, to denote the REST API route for GET requests
 
         Should return the key from the parent service object route dict, that corresponds to the REST route
@@ -147,62 +169,54 @@ class RestResourceList(OrderedDict, RestResource):
         return ""
 
     @abc.abstractmethod
-    def _fetchArgs(self) -> list:
+    def _fetch_args(self) -> list:
         """Abstract method to be implemented by subcasses, to provide values for params on the GET REST route"""
         return []
 
-    @abc.abstractmethod
-    def _createChild(self, data: dict):
+    def _create_child(self, data: dict):
         """Abstract method to be implemented by subclasses, to create the appropriate RestResourceItem instance"""
-        return RestResourceItem(self, {})
+        raise Exception("Operation not supported or not implemented")
 
     def _fetch(self):
-        """Fetch a page of results from the REST API, using the fetch route denoted by self::_fetchRoute
+        """
+        Fetch results from the REST API, using the fetch route denoted by self::_fetch_route
 
-        Will fetch up to self::_pageSize results each time, keeping track of the current page of results in self::_currentPage
+        Will fetch up to self::_page_size results each time, keeping track of the current page
+        of results in self::_current_page
         """
         logger.debug("FETCHING LIST")
         res = self.connection.make_request(
-            self.connection.routes[self._fetchRoute()][1].format(
-                self.endpoint, *self._fetchArgs()
+            self.connection.routes[self._fetch_route()][1].format(
+                self.endpoint, *self._fetch_args()
             ),
-            self._fetchRoute(),
-            params={"page": self._currentPage + 1},
+            self._fetch_route(),
+            params={"page": self._current_page + 1},
         )
-        self._pageCount = res["total_pages"]
+        self._page_count = res["total_pages"]
         # Create a RestResourceItem for each JSON object in the response, and add it to the internal dict
-        for i in res["content"]:
-            self.update({i[self.idName]: self._createChild(i)})
-        self._currentPage += 1
+        if self.data_root is None:
+            data_root = res["content"]
+        else:
+            data_root = res[self.data_root]
+        for i in data_root:
+            self.update({i[self.id_name]: self._create_child(i)})
+        self._current_page += 1
 
     def __iter__(self):
         """Iterate over all results, using self::_fetch for each page"""
         logger.debug("ITERING")
-        while self._currentPage < self._pageCount:
+        while self._current_page < self._page_count:
             self._fetch()
             logger.debug(
-                "PAGE " + str(self._currentPage) + " of " + str(self._pageCount)
+                "PAGE " + str(self._current_page) + " of " + str(self._page_count)
             )
-            for i, j in enumerate(self.items()):
-                if i >= (self._currentPage - 1) * self._pageSize:
-                    yield j[1]
+            if len(self.items()) == 0:
+                return None
+            else:
+                for i, j in enumerate(self.items()):
+                    if i >= (self._current_page - 1) * self._page_size:
+                        yield j[1]
         logger.debug("EOD")
-
-    def _iterN(self, n: int):
-        """
-        Iterate up to the n-th result, using self::_fetch for each page.
-        Used by __getitem__ to avoid fetching everying, when asking for an item by index instead of ID
-        """
-        logger.debug("ITERING up to " + str(n))
-        while self._currentPage * self._pageSize <= n:
-            self._fetch()
-            logger.debug(
-                "PAGE " + str(self._currentPage) + " of " + str(self._pageCount)
-            )
-            for i, j in enumerate(self.items()):
-                if i >= (self._currentPage - 1) * self._pageSize:
-                    yield j[1]
-        logger.debug("EOD(" + str(n) + ")")
 
     def __getitem__(self, id):
         """
@@ -213,19 +227,27 @@ class RestResourceList(OrderedDict, RestResource):
         upon success
         """
         if isinstance(id, int):
-            item = list(self._iterN(id))[id]
+            item = None
+            i = 0
+            for it in self:
+                if i == id:
+                    item = it
+                    break
+                i += 1
         else:
             item = super(OrderedDict, self).get(id)
             if item is None:
                 item = self._cache.get(id)
                 if item is None:
-                    item = self._createChild({"__fetch__": id})
+                    item = self._create_child({"__fetch__": id})
                     if item is not None:
-                        self._cache.update({getattr(item, self.idName): item})
+                        self._cache.update({getattr(item, self.id_name): item})
         return item
 
     def get(self, id, default=None):
-        """OrderedDict get override. Calls __getitem__ but ignores errors and returns default value on failures, instead"""
+        """
+        OrderedDict get override. Calls __getitem__ but ignores errors and returns default value on failures, instead
+        """
         tmp = None
         try:
             tmp = self.__getitem__(id)
@@ -236,10 +258,11 @@ class RestResourceList(OrderedDict, RestResource):
         """
         Creates a new subresource under the resource list
 
-        This will issue an API request using the endpoint specified by the _addRoute property, posting a JSON representation of the given item.
-        If the request succeedes, the appropriate RestResourceItem subclassed object will be returned, populated with the response's data
+        This will issue an API request using the endpoint specified by the _add_route property,
+        posting a JSON representation of the given item. If the request succeedes, the appropriate
+        RestResourceItem subclassed object will be returned, populated with the response's data
         """
-        if self._addRoute != "":
+        if self._add_route != "":
             if isinstance(item, RestResourceItem):
                 body = str(item)
             elif isinstance(item, dict):
@@ -247,13 +270,16 @@ class RestResourceList(OrderedDict, RestResource):
             else:
                 body = item
             res = self.connection.make_request(
-                self.connection.routes[self._addRoute()][1].format(
-                    self.endpoint, *self._addArgs()
+                self.connection.routes[self._add_route()][1].format(
+                    self.endpoint, *self._add_args()
                 ),
-                self._addRoute(),
+                self._add_route(),
                 body=body,
             )
-            ret = self._createChild(res)
+            ret = self._create_child(res)
             return ret
         else:
             raise Exception("Operation not supported or not implemented")
+
+    def __str__(self):
+        return "[{0}]".format(", ".join([str(x) for x in list(self)]))

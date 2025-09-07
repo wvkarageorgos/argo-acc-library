@@ -1,21 +1,25 @@
-from .restresource import RestResourceList, RestResourceItem
-from .metrics import ProviderMetrics
 from .installations import ProjectProviderInstallations
+from .metrics import ProviderMetrics
+from .restresource import RestResourceItem, RestResourceList
 
 
 class Provider(RestResourceItem):
-    id = None
-    acronym = None
-    title = None
-    start_date = None
-    end_date = None
-    call_identifier = None
-    providers = None
+    """Class to represent providers"""
 
-    def _fetchRoute(self):
+    def __init__(self, parent, data: dict):
+        self.id = None
+        self.acronym = None
+        self.title = None
+        self.start_date = None
+        self.end_date = None
+        self.call_identifier = None
+        self.providers = None
+        super().__init__(parent, data)
+
+    def _fetch_route(self):
         return "provider_entry"
 
-    def _fetchArgs(self):
+    def _fetch_args(self):
         return [self.id]
 
     @property
@@ -24,21 +28,25 @@ class Provider(RestResourceItem):
 
 
 class Providers(RestResourceList):
-    def _fetchRoute(self):
+    """Provider collection class"""
+
+    def _fetch_route(self):
         return "provider_list"
 
-    def _fetchArgs(self) -> list:
+    def _fetch_args(self) -> list:
         return []
 
-    def _createChild(self, data):
+    def _create_child(self, data):
         return Provider(self, data)
 
 
 class ProjectProvider(RestResourceItem):
-    def _fetchRoute(self):
+    """Class to represent a provider under the context of a specific project"""
+
+    def _fetch_route(self):
         return ""
 
-    def _fetchArgs(self):
+    def _fetch_args(self):
         return []
 
     @property
@@ -49,11 +57,14 @@ class ProjectProvider(RestResourceItem):
     def installations(self):
         return ProjectProviderInstallations(self)
 
+
 class ProjectProviders(RestResourceList):
-    def _fetchRoute(self):
+    """Project providers collection class"""
+
+    def _fetch_route(self):
         return ""
 
-    def _fetchArgs(self):
+    def _fetch_args(self):
         return []
 
     def __getitem__(self, key: str):

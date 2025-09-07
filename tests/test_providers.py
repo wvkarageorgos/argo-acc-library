@@ -1,7 +1,10 @@
 import unittest
-from .accmocks import ProviderMocks
+
 from httmock import HTTMock
-from pymod import ArgoAccountingService, Providers
+
+from pymod import ArgoAccountingService
+
+from .accmocks import ProviderMocks
 
 
 class TestProviders(unittest.TestCase):

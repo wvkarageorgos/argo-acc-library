@@ -1,20 +1,28 @@
-from .restresource import RestResourceList, RestResourceItem
 from .metrics import InstallationMetrics
+from .restresource import RestResourceItem, RestResourceList
+
 
 class InstallationBase(RestResourceItem):
-    id = None
-    project = None
-    organisation = None
-    infrastructure = None
-    installation = None
-    resource = None
-    unit_of_access = None
+    """Base class for Installation related classes"""
+
+    def __init__(self, parent, data: dict):
+        self.id = None
+        self.project = None
+        self.organisation = None
+        self.infrastructure = None
+        self.installation = None
+        self.resource = None
+        self.unit_of_access = None
+        super().__init__(parent, data)
+
 
 class Installation(InstallationBase):
-    def _fetchRoute(self):
+    """Class to represent an installation"""
+
+    def _fetch_route(self):
         return "installation_entry"
 
-    def _fetchArgs(self):
+    def _fetch_args(self):
         return [self.id]
 
     @property
@@ -23,21 +31,24 @@ class Installation(InstallationBase):
 
 
 class Installations(RestResourceList):
-    def _fetchRoute(self):
+    """Installation collection class"""
+    def _fetch_route(self):
         return "installation_list"
 
-    def _fetchArgs(self) -> list:
+    def _fetch_args(self) -> list:
         return []
 
-    def _createChild(self, data):
+    def _create_child(self, data):
         return Installation(self, data)
 
 
 class ProjectInstallation(InstallationBase):
-    def _fetchRoute(self):
+    """Class to represent an installation belonging to a project"""
+
+    def _fetch_route(self):
         return ""
 
-    def _fetchArgs(self):
+    def _fetch_args(self):
         return []
 
     @property
@@ -46,20 +57,25 @@ class ProjectInstallation(InstallationBase):
 
 
 class ProjectInstallations(RestResourceList):
-    def _fetchRoute(self):
+    """Project installation collection class"""
+
+    def _fetch_route(self):
         return "project_installations_list"
 
-    def _fetchArgs(self) -> list:
+    def _fetch_args(self) -> list:
         return [self._parent.id]
 
-    def _createChild(self, data):
+    def _create_child(self, data):
         return ProjectInstallation(self, data)
 
+
 class ProjectProviderInstallation(InstallationBase):
-    def _fetchRoute(self):
+    """Class to represent an installation belonging to a project for a specific provider"""
+
+    def _fetch_route(self):
         return ""
 
-    def _fetchArgs(self):
+    def _fetch_args(self):
         return []
 
     @property
@@ -68,11 +84,13 @@ class ProjectProviderInstallation(InstallationBase):
 
 
 class ProjectProviderInstallations(RestResourceList):
-    def _fetchRoute(self):
+    """Project provider installation collection class"""
+
+    def _fetch_route(self):
         return "project_provider_installations_list"
 
-    def _fetchArgs(self) -> list:
+    def _fetch_args(self) -> list:
         return [self._parent._parent._parent.id, self._parent.id]
 
-    def _createChild(self, data):
+    def _create_child(self, data):
         return ProjectProviderInstallation(self, data)
