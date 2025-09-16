@@ -1,8 +1,13 @@
 import unittest
-from .accmocks import InstallationMocks, InstallationMetricMocks, ProjectMocks, ProjectMetricMocks, ProjectProviderMetricMocks
-from httmock import urlmatch, HTTMock, response
+
+from httmock import HTTMock
+
 from pymod import ArgoAccountingService, InstallationMetric
-import logging
+
+from .accmocks import (InstallationMetricMocks, InstallationMocks,
+                       ProjectMetricMocks, ProjectMocks,
+                       ProjectProviderMetricMocks)
+
 
 class TestMetrics(unittest.TestCase):
     def setUp(self):
@@ -27,6 +32,7 @@ class TestMetrics(unittest.TestCase):
     def testGetTestInstallationMetricByID(self):
         with HTTMock(
             self.InstallationMetricMocks.get_test_installation_metric_item_mock,
+            self.InstallationMocks.get_installation_test_mock,
         ):
             metric = self.acc.installations["68179546f1a5b48f0c854353"].metrics[
                 "681bc483371ad01d931461bf"
@@ -41,6 +47,7 @@ class TestMetrics(unittest.TestCase):
         with HTTMock(
             self.InstallationMetricMocks.get_test_installation_metric_item_mock,
             self.InstallationMetricMocks.get_test_installation_metric_list_mock,
+            self.InstallationMocks.get_installation_test_mock,
         ):
             metric = self.acc.installations["68179546f1a5b48f0c854353"].metrics[0]
             self.assertEqual(metric.id, "681bc483371ad01d931461bf")
@@ -52,6 +59,7 @@ class TestMetrics(unittest.TestCase):
     def testGetTestInstallationMetricJSON(self):
         with HTTMock(
             self.InstallationMetricMocks.get_test_installation_metric_item_mock,
+            self.InstallationMocks.get_installation_test_mock,
         ):
             metric = self.acc.installations["68179546f1a5b48f0c854353"].metrics[
                 "681bc483371ad01d931461bf"
@@ -128,7 +136,11 @@ class TestMetrics(unittest.TestCase):
             self.InstallationMetricMocks.post_installation_test_metric_mock,
         ):
             installation = self.acc.installations["68179546f1a5b48f0c854353"]
-            m = """{"metric_definition_id": "678f89694665a309e8a6c9b2", "time_period_start": "2024-01-01T03:43:40Z", "time_period_end": "2024-01-01T09:20:37Z", "value": 66.0336, "group_id": "3f5fc61f3e3af93b", "user_id": "9936cb22d3c26a34"}"""
+            m = (
+                """{"metric_definition_id": "678f89694665a309e8a6c9b2", "time_period_start": "2024-01-01T03:43:40Z","""
+                """ "time_period_end": "2024-01-01T09:20:37Z", "value": 66.0336, "group_id": "3f5fc61f3e3af93b","""
+                """ "user_id": "9936cb22d3c26a34"}"""
+            )
             ret = installation.metrics.add(m)
             self.assertEqual(ret.metric_definition_id, "678f89694665a309e8a6c9b2")
             self.assertEqual(ret.time_period_start, "2024-01-01T03:43:40Z")

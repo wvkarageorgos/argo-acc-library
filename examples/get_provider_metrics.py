@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-from argparse import ArgumentParser
-from argo_acc_library import ArgoAccountingService
 import sys
+from argparse import ArgumentParser
+
+from argo_acc_library import ArgoAccountingService
 
 if __name__ == "__main__":
     parser = ArgumentParser(description="Simple Argo Accounting metric fetch example")
@@ -51,7 +52,7 @@ if __name__ == "__main__":
             # print each metric value and type
             print(m.value, m.metric_definition.metric_type)
             # alternatively, print all metric data as JSON string
-            # print(m) 
+            # print(m)
             cnt += 1
         if cnt == 0:
             print("No metrics found for requested provider / project combination")

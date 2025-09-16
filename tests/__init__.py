@@ -1,17 +1,15 @@
 import logging
 import os
 
-try:
-    from logging import NullHandler
-except ImportError:
-
-    class NullHandler(logging.Handler):
-        def emit(self, record):
-            pass
-
-
 logger = logging.getLogger(__name__)
-if os.getenv("DEBUG"):
+logger = logging.getLogger(__name__)
+if os.getenv("DEBUG") is not None and str(os.getenv("DEBUG")).lower() in [
+    "1",
+    "t",
+    "true",
+    "y",
+    "yes",
+]:
     import sys
 
     ch = logging.StreamHandler(sys.stderr)
@@ -23,4 +21,4 @@ if os.getenv("DEBUG"):
     logger.addHandler(ch)
     logger.setLevel(logging.DEBUG)
 else:
-    logger.addHandler(NullHandler())
+    logger.addHandler(logging.NullHandler())

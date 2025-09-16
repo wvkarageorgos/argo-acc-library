@@ -1,28 +1,20 @@
-from .httprequests import HttpRequests
-from .installations import Installations, Installation
-from .projects import Projects, Project
-from .providers import Providers, Provider
-from .metrics import (
-    InstallationMetric,
-    InstallationMetrics,
-    ProjectMetric,
-    ProjectMetrics,
-    ProviderMetrics,
-    ProviderMetric,
-)
 from typing import Optional
+
+from .httprequests import HttpRequests
+from .installations import Installations
+from .projects import Projects
+from .providers import Providers
 
 
 class ArgoAccountingService(object):
     """Module main class, to access the REST API"""
 
-    _installations: Optional[Installations] = None
-    _projects: Optional[Projects] = None
-    _providers: Optional[Providers] = None
-
     def __init__(self, endpoint, token):
         self._endpoint = endpoint
         self._conn = HttpRequests(token)
+        self._installations: Optional[Installations] = None
+        self._projects: Optional[Projects] = None
+        self._providers: Optional[Providers] = None
 
     @property
     def installations(self):

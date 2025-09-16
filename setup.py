@@ -1,6 +1,6 @@
-from setuptools import setup
 from os import path
-import sys
+
+from setuptools import setup
 
 NAME = 'argo-acc-library'
 

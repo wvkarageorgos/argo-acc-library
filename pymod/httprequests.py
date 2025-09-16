@@ -1,10 +1,11 @@
-import requests
-import sys
+import json
 import logging
 import socket
-import json
 
-from .exceptions import AccConnectionException, AccServiceException, AccTimeoutException
+import requests
+
+from .exceptions import (AccConnectionException, AccServiceException,
+                         AccTimeoutException)
 
 logger = logging.getLogger(__name__)
 

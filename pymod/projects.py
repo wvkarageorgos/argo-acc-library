@@ -1,22 +1,26 @@
-from .restresource import RestResourceList, RestResourceItem
-from .metrics import ProjectMetrics
 from .installations import ProjectInstallations
+from .metrics import ProjectMetrics
 from .providers import ProjectProviders
+from .restresource import RestResourceItem, RestResourceList
 
 
 class Project(RestResourceItem):
-    id = None
-    acronym = None
-    title = None
-    start_date = None
-    end_date = None
-    call_identifier = None
-    _providers = None
+    """Class to represent projects"""
 
-    def _fetchRoute(self):
+    def __init__(self, parent, data: dict):
+        self.id = None
+        self.acronym = None
+        self.title = None
+        self.start_date = None
+        self.end_date = None
+        self.call_identifier = None
+        self._providers = None
+        super().__init__(parent, data)
+
+    def _fetch_route(self):
         return "project_entry"
 
-    def _fetchArgs(self):
+    def _fetch_args(self):
         return [self.id]
 
     @property
@@ -37,11 +41,13 @@ class Project(RestResourceItem):
 
 
 class Projects(RestResourceList):
-    def _fetchRoute(self):
+    """Project collection class"""
+
+    def _fetch_route(self):
         return "project_list"
 
-    def _fetchArgs(self) -> list:
+    def _fetch_args(self) -> list:
         return []
 
-    def _createChild(self, data):
+    def _create_child(self, data):
         return Project(self, data)

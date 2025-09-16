@@ -1,7 +1,10 @@
 import unittest
-from .accmocks import ProjectMocks
+
 from httmock import HTTMock
-from pymod import ArgoAccountingService, Projects
+
+from pymod import ArgoAccountingService
+
+from .accmocks import ProjectMocks
 
 
 class TestProjects(unittest.TestCase):

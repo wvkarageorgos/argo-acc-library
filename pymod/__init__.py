@@ -1,17 +1,11 @@
 import logging
 import os
 
-try:
-    from logging import NullHandler
-except ImportError:
-
-    class NullHandler(logging.Handler):
-        def emit(self, record):
-            pass
-
+from .argoaccountingservice import ArgoAccountingService
+from .metrics import InstallationMetric
 
 logger = logging.getLogger(__name__)
-if os.getenv("DEBUG") is not None and os.getenv("DEBUG").lower() in [
+if os.getenv("DEBUG") is not None and str(os.getenv("DEBUG")).lower() in [
     "1",
     "t",
     "true",
@@ -29,24 +23,22 @@ if os.getenv("DEBUG") is not None and os.getenv("DEBUG").lower() in [
     logger.addHandler(ch)
     logger.setLevel(logging.DEBUG)
 else:
-    logger.addHandler(NullHandler())
+    logger.addHandler(logging.NullHandler())
 
-from .exceptions import (
-    AccException,
-    AccServiceException,
-    AccTimeoutException,
-    AccConnectionException,
-)
-from .argoaccountingservice import (
-    ArgoAccountingService,
-    Installations,
-    Installation,
-    InstallationMetrics,
-    InstallationMetric,
-    Projects,
-    Project,
-    ProjectMetrics,
-    ProjectMetric,
-    Providers,
-    Provider,
-)
+__all__ = [
+    "ArgoAccountingService",
+    "Installation",
+    "InstallationMetric",
+    "InstallationMetrics",
+    "Installations",
+    "Project",
+    "ProjectMetric",
+    "ProjectMetrics",
+    "Projects",
+    "Provider",
+    "Providers",
+    "AccConnectionException",
+    "AccException",
+    "AccServiceException",
+    "AccTimeoutException"
+]
