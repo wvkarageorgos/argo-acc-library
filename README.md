@@ -43,8 +43,8 @@ acc = ArgoAccountingService(endpoint="acc_endpoint", token="your_jwt")
 
 In the `examples` folder, you may find the following library usage examples:
 
-* getting a JSON list of registered installations (`examples/get_installations.py`)
-* getting a type / value list of metrics for a specific installation (`examples/get_installation_metrics.py`)
+* getting a JSON list of registered installations
+* getting a type / value list of metrics for a specific installation
 * assigning a new metric entry to an installation
 * getting a title / ID list of registed projects
 * getting a type / value list of metrics for a specific project
@@ -62,6 +62,8 @@ python3 ./examples/get_installations.py --host api.devel.acc.argo.grnet.gr --tok
 ```
 
 where piping to the command-line JSON processor [jq](https://jqlang.org/) in order to pretty-print the output may be omitted, if jq is not installed.
+
+N.B. this resource requires system administrator privileges
 
 ### Listing installation metrics
 
@@ -90,6 +92,8 @@ Assuming you've saved your valid JWT in a file under `~/acc.jwt`, you may run th
 ```bash
 python3 ./examples/get_projects.py --host api.devel.acc.argo.grnet.gr --token ~/acc.jwt -f
 ```
+
+N.B. this resource requires system administrator privileges
 
 ### Getting a type / value list of metrics for a specific project
 
